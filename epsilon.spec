@@ -1,22 +1,17 @@
 Summary:	Enlightened Thumbnail Generator
 Summary(pl):	O¶wiecony generator miniaturek obrazów
 Name:		epsilon
-Version:	0.3.0
-%define _snap	20050701
-Release:	0.%{_snap}.0.1
+Version:	0.3.0.004
+Release:	1
 License:	BSD
 Group:		X11/Libraries
-#Source0:	http://dl.sourceforge.net/enlightenment/%{name}-%{version}.tar.gz
-Source0:	http://sparky.homelinux.org/snaps/enli/e17/libs/%{name}-%{_snap}.tar.gz
-# Source0-md5:	b86833bb0c6190b93b99234d9d3a5311
+Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
+# Source0-md5:	10118c712b42d00b332c6fe1d9257661
 URL:		http://enlightenment.org/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	edje-devel
 BuildRequires:	epeg-devel
-BuildRequires:	freetype-devel
-BuildRequires:	imlib2-devel
-BuildRequires:	libltdl-devel
-BuildRequires:	libpng-devel
 BuildRequires:	libtool
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -70,7 +65,7 @@ Static Epsilon library.
 Statyczna biblioteka Epsilon.
 
 %prep
-%setup -q -n %{name}
+%setup -q
 
 %build
 %{__libtoolize}
