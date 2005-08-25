@@ -7,7 +7,7 @@ License:	BSD
 Group:		X11/Libraries
 Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
 # Source0-md5:	10118c712b42d00b332c6fe1d9257661
-URL:		http://enlightenment.org/
+URL:		http://enlightenment.org/Libraries/Epsilon/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	edje-devel
