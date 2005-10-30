@@ -13,6 +13,7 @@ BuildRequires:	automake
 BuildRequires:	edje-devel
 BuildRequires:	epeg-devel
 BuildRequires:	libtool
+Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -40,11 +41,22 @@ JPEG. Je¶li plik jest innego typu, zostanie u¿yte tradycyjne
 zachowanie freedesktop.org . Aby pokazaæ przyspieszenie oferowane
 przez epeg, Epsilon mo¿e byæ zbudowany z lub bez epeg.
 
+%package libs
+Summary:	Epsilon library
+Summary(pl):	Biblioteka Epsilon
+Group:		X11/Libraries
+
+%description libs
+Epsilon library.
+
+%description libs -l pl
+Biblioteka Epsilon.
+
 %package devel
 Summary:	Epsilon header file
 Summary(pl):	Plik nag³ówkowy Epsilon
 Group:		Development/Libraries
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-libs = %{version}-%{release}
 
 %description devel
 Epsilon thumbnailer development header.
@@ -85,13 +97,16 @@ rm -rf $RPM_BUILD_ROOT
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post   -p /sbin/ldconfig
-%postun -p /sbin/ldconfig
+%post libs	-p /sbin/ldconfig
+%postun libs	-p /sbin/ldconfig
 
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS COPYING README
 %attr(755,root,root) %{_bindir}/epsilon
+
+%files libs
+%defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libepsilon.so.*.*.*
 
 %files devel
