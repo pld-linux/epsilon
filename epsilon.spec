@@ -1,3 +1,7 @@
+#
+# Conditional build:
+%bcond_without	static_libs	# don't build static library
+#
 Summary:	Enlightened Thumbnail Generator
 Summary(pl):	O¶wiecony generator miniaturek obrazów
 Name:		epsilon
@@ -85,7 +89,8 @@ Statyczna biblioteka Epsilon.
 %{__autoconf}
 %{__autoheader}
 %{__automake}
-%configure
+%configure \
+	%{!?with_static_libs:--disable-static}
 %{__make}
 
 %install
@@ -116,6 +121,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libepsilon.la
 %{_includedir}/Epsilon.h
 
+%if %{with static_libs}
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libepsilon.a
+%endif
