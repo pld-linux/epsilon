@@ -5,20 +5,22 @@
 Summary:	Enlightened Thumbnail Generator
 Summary(pl):	O¶wiecony generator miniaturek obrazów
 Name:		epsilon
-Version:	0.3.0.004
+Version:	0.3.0.005
 Release:	1
 License:	BSD
 Group:		X11/Libraries
 Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
-# Source0-md5:	10118c712b42d00b332c6fe1d9257661
+# Source0-md5:	c542ad34f913492f6b49c285d426ebc6
 URL:		http://enlightenment.org/Libraries/Epsilon/
-BuildRequires:	autoconf
-BuildRequires:	automake
+#BuildRequires:	autoconf
+#BuildRequires:	automake
 BuildRequires:	edje-devel
 BuildRequires:	epeg-devel
-BuildRequires:	libtool
+#BuildRequires:	libtool
 Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%undefine	__cxx
 
 %description
 Epsilon is a small, display independent, and quick thumbnailing
@@ -84,11 +86,11 @@ Statyczna biblioteka Epsilon.
 %setup -q
 
 %build
-%{__libtoolize}
-%{__aclocal}
-%{__autoconf}
-%{__autoheader}
-%{__automake}
+#%%{__libtoolize}
+#%%{__aclocal}
+#%%{__autoconf}
+#%%{__autoheader}
+#%%{__automake}
 %configure \
 	%{!?with_static_libs:--disable-static}
 %{__make}
@@ -120,6 +122,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libepsilon.so
 %{_libdir}/libepsilon.la
 %{_includedir}/Epsilon.h
+%{_pkgconfigdir}/%{name}.pc
 
 %if %{with static_libs}
 %files static
