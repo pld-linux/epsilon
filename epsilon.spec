@@ -5,18 +5,15 @@
 Summary:	Enlightened Thumbnail Generator
 Summary(pl):	O¶wiecony generator miniaturek obrazów
 Name:		epsilon
-Version:	0.3.0.005
+Version:	0.3.0.006
 Release:	1
 License:	BSD
 Group:		X11/Libraries
 Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
-# Source0-md5:	c542ad34f913492f6b49c285d426ebc6
+# Source0-md5:	035189f354db9e60f10e5da485645fa3
 URL:		http://enlightenment.org/Libraries/Epsilon/
-#BuildRequires:	autoconf
-#BuildRequires:	automake
 BuildRequires:	edje-devel
 BuildRequires:	epeg-devel
-#BuildRequires:	libtool
 Requires:	%{name}-libs = %{version}-%{release}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -86,11 +83,6 @@ Statyczna biblioteka Epsilon.
 %setup -q
 
 %build
-#%%{__libtoolize}
-#%%{__aclocal}
-#%%{__autoconf}
-#%%{__autoheader}
-#%%{__automake}
 %configure \
 	%{!?with_static_libs:--disable-static}
 %{__make}
