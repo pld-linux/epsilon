@@ -60,6 +60,7 @@ Summary:	Epsilon header file
 Summary(pl):	Plik nag³ówkowy Epsilon
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
+Requires:	epeg-devel
 
 %description devel
 Epsilon thumbnailer development header.
@@ -102,7 +103,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS COPYING README
-%attr(755,root,root) %{_bindir}/epsilon
+%attr(755,root,root) %{_bindir}/epsilon*
 
 %files libs
 %defattr(644,root,root,755)
@@ -113,7 +114,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/epsilon-config
 %attr(755,root,root) %{_libdir}/libepsilon.so
 %{_libdir}/libepsilon.la
-%{_includedir}/Epsilon.h
+%{_includedir}/Epsilon*.h
 %{_pkgconfigdir}/%{name}.pc
 
 %if %{with static_libs}
