@@ -3,7 +3,7 @@
 %bcond_without	static_libs	# don't build static library
 #
 Summary:	Enlightened Thumbnail Generator
-Summary(pl.UTF-8):   Oświecony generator miniaturek obrazów
+Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
 Version:	0.3.0.007
 Release:	4
@@ -47,7 +47,7 @@ przez epeg, Epsilon może być zbudowany z lub bez epeg.
 
 %package libs
 Summary:	Epsilon library
-Summary(pl.UTF-8):   Biblioteka Epsilon
+Summary(pl.UTF-8):	Biblioteka Epsilon
 Group:		X11/Libraries
 
 %description libs
@@ -58,7 +58,7 @@ Biblioteka Epsilon.
 
 %package devel
 Summary:	Epsilon header file
-Summary(pl.UTF-8):   Plik nagłówkowy Epsilon
+Summary(pl.UTF-8):	Plik nagłówkowy Epsilon
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	epeg-devel
@@ -71,7 +71,7 @@ Plik nagłówkowy biblioteki Epsilon generującej miniaturki obrazów.
 
 %package static
 Summary:	Static Epsilon library
-Summary(pl.UTF-8):   Statyczna biblioteka Epsilon
+Summary(pl.UTF-8):	Statyczna biblioteka Epsilon
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
