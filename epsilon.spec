@@ -3,7 +3,7 @@
 %bcond_without	static_libs	# don't build static library
 #
 Summary:	Enlightened Thumbnail Generator
-Summary(pl):	O¶wiecony generator miniaturek obrazów
+Summary(pl.UTF-8):   OÅ›wiecony generator miniaturek obrazÃ³w
 Name:		epsilon
 Version:	0.3.0.007
 Release:	4
@@ -32,33 +32,33 @@ anything other than jpg, the traditional freedesktop.org thumbnailing
 will occur. To show the speed increase epeg offers, Epsilon can be
 built with and without epeg.
 
-%description -l pl
-Epsilon to ma³a, niezale¿na od ekranu i szybka biblioteka do
-generowania miniaturek obrazów. Sama biblioteka jest zgodna ze
-standardem opracowanym przez freedesktop.org . Wiêcej informacji
-mo¿na znale¼æ pod adresem
+%description -l pl.UTF-8
+Epsilon to maÅ‚a, niezaleÅ¼na od ekranu i szybka biblioteka do
+generowania miniaturek obrazÃ³w. Sama biblioteka jest zgodna ze
+standardem opracowanym przez freedesktop.org . WiÄ™cej informacji
+moÅ¼na znaleÅºÄ‡ pod adresem
 http://triq.net/~jens/thumbnail-spec/index.html .
 
-Epeg oferuje bardzo zauwa¿alne przyspieszenie w stosunku do tego
-standardu, ale jest ono dostêpne tylko je¶li obrazek jest plikiem
-JPEG. Je¶li plik jest innego typu, zostanie u¿yte tradycyjne
-zachowanie freedesktop.org . Aby pokazaæ przyspieszenie oferowane
-przez epeg, Epsilon mo¿e byæ zbudowany z lub bez epeg.
+Epeg oferuje bardzo zauwaÅ¼alne przyspieszenie w stosunku do tego
+standardu, ale jest ono dostÄ™pne tylko jeÅ›li obrazek jest plikiem
+JPEG. JeÅ›li plik jest innego typu, zostanie uÅ¼yte tradycyjne
+zachowanie freedesktop.org . Aby pokazaÄ‡ przyspieszenie oferowane
+przez epeg, Epsilon moÅ¼e byÄ‡ zbudowany z lub bez epeg.
 
 %package libs
 Summary:	Epsilon library
-Summary(pl):	Biblioteka Epsilon
+Summary(pl.UTF-8):   Biblioteka Epsilon
 Group:		X11/Libraries
 
 %description libs
 Epsilon library.
 
-%description libs -l pl
+%description libs -l pl.UTF-8
 Biblioteka Epsilon.
 
 %package devel
 Summary:	Epsilon header file
-Summary(pl):	Plik nag³ówkowy Epsilon
+Summary(pl.UTF-8):   Plik nagÅ‚Ã³wkowy Epsilon
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 Requires:	epeg-devel
@@ -66,19 +66,19 @@ Requires:	epeg-devel
 %description devel
 Epsilon thumbnailer development header.
 
-%description devel -l pl
-Plik nag³ówkowy biblioteki Epsilon generuj±cej miniaturki obrazów.
+%description devel -l pl.UTF-8
+Plik nagÅ‚Ã³wkowy biblioteki Epsilon generujÄ…cej miniaturki obrazÃ³w.
 
 %package static
 Summary:	Static Epsilon library
-Summary(pl):	Statyczna biblioteka Epsilon
+Summary(pl.UTF-8):   Statyczna biblioteka Epsilon
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
 %description static
 Static Epsilon library.
 
-%description static -l pl
+%description static -l pl.UTF-8
 Statyczna biblioteka Epsilon.
 
 %prep
