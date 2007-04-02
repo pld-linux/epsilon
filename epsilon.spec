@@ -6,7 +6,7 @@ Summary:	Enlightened Thumbnail Generator
 Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
 Version:	0.3.0.007
-Release:	4
+Release:	5
 License:	BSD
 Group:		X11/Libraries
 Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
