@@ -2,6 +2,11 @@
 # Conditional build:
 %bcond_without	static_libs	# don't build static library
 #
+%define		ecore_ver	0.9.9.038
+%define		edje_ver	0.5.0.038
+%define		epeg_ver	0.9.0.008
+%define		evas_ver	0.9.9.038
+
 Summary:	Enlightened Thumbnail Generator
 Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
@@ -13,10 +18,10 @@ Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
 # Source0-md5:	ba946584d90357f98402456e0fee9dcf
 URL:		http://enlightenment.org/
 # ecore-con ecore-evas ecore-file
-BuildRequires:	ecore-devel >= 0.9.9.038
-BuildRequires:	edje-devel >= 0.5.0.038
-BuildRequires:	epeg-devel >= 0.9.0.008
-BuildRequires:	evas-devel >= 0.9.9.038
+BuildRequires:	ecore-devel >= %{ecore_ver}
+BuildRequires:	edje-devel >= %{edje_ver}
+BuildRequires:	epeg-devel >= %{epeg_ver}
+BuildRequires:	evas-devel >= %{evas_ver}
 BuildRequires:	imlib2-devel >= 1.0.0
 BuildRequires:	libpng-devel >= 1.2.0
 BuildRequires:	perl-base
@@ -56,12 +61,12 @@ przez epeg, Epsilon może być zbudowany z lub bez epeg.
 Summary:	Epsilon library
 Summary(pl.UTF-8):	Biblioteka Epsilon
 Group:		X11/Libraries
-Requires:	ecore-con >= 0.9.9.038
-Requires:	ecore-evas >= 0.9.9.038
-Requires:	ecore-file >= 0.9.9.038
-Requires:	edje-libs >= 0.5.0.038
-Requires:	epeg-libs >= 0.9.0.008
-Requires:	evas >= 0.9.9.038
+Requires:	ecore-con >= %{ecore_ver}
+Requires:	ecore-evas >= %{ecore_ver}
+Requires:	ecore-file >= %{ecore_ver}
+Requires:	edje-libs >= %{edje_ver}
+Requires:	epeg-libs >= %{epeg_ver}
+Requires:	evas >= %{evas_ver}
 Requires:	imlib2 >= 1.0.0
 
 %description libs
@@ -76,10 +81,10 @@ Summary(pl.UTF-8):	Plik nagłówkowy Epsilon
 Group:		X11/Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 # ecore-con ecore-evas ecore-file
-Requires:	ecore-devel >= 0.9.9.038
-Requires:	edje-devel >= 0.5.0.038
-Requires:	epeg-devel >= 0.9.0.008
-Requires:	evas-devel >= 0.9.9.038
+Requires:	ecore-devel >= %{ecore_ver}
+Requires:	edje-devel >= %{edje_ver}
+Requires:	epeg-devel >= %{epeg_ver}
+Requires:	evas-devel >= %{evas_ver}
 Requires:	imlib2-devel >= 1.0.0
 Requires:	libpng-devel >= 1.2.0
 
