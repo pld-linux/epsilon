@@ -2,20 +2,20 @@
 # Conditional build:
 %bcond_without	static_libs	# don't build static library
 #
-%define		ecore_ver	0.9.9.038
-%define		edje_ver	0.5.0.038
-%define		epeg_ver	0.9.0.008
-%define		evas_ver	0.9.9.038
+%define		ecore_ver	0.9.9.043
+%define		edje_ver	0.9.9.043
+%define		epeg_ver	0.9.1.042
+%define		evas_ver	0.9.9.043
 
 Summary:	Enlightened Thumbnail Generator
 Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
-Version:	0.3.0.008
-Release:	2
+Version:	0.3.0.012
+Release:	1
 License:	BSD
 Group:		X11/Libraries
-Source0:	http://enlightenment.freedesktop.org/files/%{name}-%{version}.tar.gz
-# Source0-md5:	ba946584d90357f98402456e0fee9dcf
+Source0:	http://download.enlightenment.org/snapshots/2008-01-25/%{name}-%{version}.tar.bz2
+# Source0-md5:	915e8f29d1de2ec676bbfe3baefe5cdf
 URL:		http://enlightenment.org/
 # ecore-con ecore-evas ecore-file
 BuildRequires:	ecore-devel >= %{ecore_ver}
@@ -151,13 +151,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files libs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libepsilon.so.*.*.*
+%attr(755,root,root) %{_libdir}/libepsilon.so.*
 %dir %{_libdir}/epsilon
 %dir %{_libdir}/epsilon/plugins
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/epsilon-config
 %attr(755,root,root) %{_libdir}/libepsilon.so
 %{_libdir}/libepsilon.la
 %{_includedir}/Epsilon*.h
