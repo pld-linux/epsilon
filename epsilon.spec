@@ -2,28 +2,32 @@
 # Conditional build:
 %bcond_without	static_libs	# don't build static library
 #
-%define		ecore_ver	0.9.9.043
-%define		edje_ver	0.9.9.043
-%define		epeg_ver	0.9.1.042
-%define		evas_ver	0.9.9.043
+%define		ecore_ver	0.9.9.044
+%define		edje_ver	0.9.9.044
+%define		epeg_ver	0.9.1.043
+%define		evas_ver	0.9.9.044
+%define		_snap	20080813
 
 Summary:	Enlightened Thumbnail Generator
 Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
-Version:	0.3.0.012
-Release:	1
+Version:	0.3.0.013
+Release:	0.%{_snap}.1
 License:	BSD
 Group:		X11/Libraries
-Source0:	http://download.enlightenment.org/snapshots/2008-01-25/%{name}-%{version}.tar.bz2
-# Source0-md5:	915e8f29d1de2ec676bbfe3baefe5cdf
+Source0:	%{name}-%{version}-%{_snap}.tar.bz2
+# Source0-md5:	b677b9c39aa2d5b467503faffd4b4879
 URL:		http://enlightenment.org/
 # ecore-con ecore-evas ecore-file
+BuildRequires:	autoconf
+BuildRequires:	automake
 BuildRequires:	ecore-devel >= %{ecore_ver}
 BuildRequires:	edje-devel >= %{edje_ver}
 BuildRequires:	epeg-devel >= %{epeg_ver}
 BuildRequires:	evas-devel >= %{evas_ver}
 BuildRequires:	imlib2-devel >= 1.0.0
 BuildRequires:	libpng-devel >= 1.2.0
+BuildRequires:	libtool
 BuildRequires:	perl-base
 BuildRequires:	pkgconfig
 BuildRequires:	xine-lib-devel >= 1:1.0.0
@@ -121,9 +125,14 @@ Oparty na XINE generator miniaturek dla Epsilona. Obsługuje pliki
 MPEG, AVI, WMV i QuickTime.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}-%{_snap}
 
 %build
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+%{__autoheader}
+%{__automake}
 %configure \
 	%{!?with_static_libs:--disable-static}
 %{__make}
