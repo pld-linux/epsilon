@@ -1,0 +1,727 @@
+--- epsilon-0.3.0.013-20080813/src/bin/epsilon_thumbd.c.orig	2008-05-22 05:36:25.000000000 +0200
++++ epsilon-0.3.0.013-20080813/src/bin/epsilon_thumbd.c	2012-01-22 14:01:15.587000345 +0100
+@@ -1,7 +1,7 @@
+ #include "epsilon_private.h"
+ #include <Ecore.h>
+-#include <Ecore_Data.h>
+ #include <Ecore_Ipc.h>
++#include <Eina.h>
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -36,7 +36,7 @@ struct _Epsilon_Client
+ {
+ 	unsigned int        id;
+ 	Ecore_Ipc_Client    *client;
+-	Ecore_List          *thumbs;
++	Eina_List           *thumbs;
+ 
+ 	Epsilon_Ipc_End  ipcend;
+ };
+@@ -60,7 +60,7 @@ struct _Epsilon_Entry
+ typedef struct _Epsilon_Worker Epsilon_Worker;
+ struct _Epsilon_Worker
+ {
+-	Ecore_List *thumbs;
++	Eina_List *thumbs;
+ 	pid_t child;
+ 	double runtime;
+ 	Ecore_Ipc_Server *server;
+@@ -92,13 +92,13 @@ static Ecore_Event_Handler *worker_add =
+ static Ecore_Event_Handler *worker_del = NULL;
+ static Ecore_Event_Handler *worker_data = NULL;
+ 
+-static Ecore_List *queued_workers;
+-static Ecore_List *gworkers = NULL;
++static Eina_List *queued_workers;
++static Eina_List *gworkers = NULL;
+ 
+ static Ecore_Ipc_Server *thumb_server = NULL;
+ static Ecore_Ipc_Server *thumbd_server = NULL;
+ 
+-static Ecore_List *response_queue = NULL;
++static Eina_List *response_queue = NULL;
+ 
+ static char *epsilond_socket_path(char *name);
+ /* static int epsilond_entry_free(Epsilon_Entry *thumb); */
+@@ -109,7 +109,7 @@ int epsilond_cb_worker_add(void *data, i
+ int epsilond_cb_worker_del(void *data, int type, void *event);
+ int epsilond_cb_worker_data(void *data, int type, void *event);
+ 
+-void epsilond_init_thumbd_server(Ecore_List* workers) 
++void epsilond_init_thumbd_server(Eina_List* workers) 
+ {
+ 	char* buf;
+ 
+@@ -162,7 +162,7 @@ epsilond_cb_client_add(void *data, int t
+ {
+ 	Epsilon_Client *cl;
+ 	Ecore_Ipc_Event_Client_Add *e;
+-	Ecore_List *clients = data;
++	Eina_List *clients = data;
+ 
+ 	e = event;
+ 	type = 0;
+@@ -178,7 +178,7 @@ epsilond_cb_client_add(void *data, int t
+ 	 */
+ 	cl->id = client_id++;
+ 	cl->client = e->client;
+-	ecore_list_append(clients, cl);
++	clients = eina_list_append(clients, cl);
+ 
+ 	if (debug) printf("Added client %d\n", cl->id);
+ 
+@@ -193,7 +193,7 @@ epsilond_cb_worker_add(void *data, int t
+ {
+ 	Epsilon_Client *cl;
+ 	Ecore_Ipc_Event_Client_Add *e;
+-	Ecore_List *workers = data;
++	Eina_List *workers = data;
+ 
+ 	e = event;
+ 	data = NULL;
+@@ -210,7 +210,7 @@ epsilond_cb_worker_add(void *data, int t
+ 	 */
+ 	cl->id = client_id++;
+ 	cl->client = e->client;
+-	ecore_list_append(workers, cl);
++	workers = eina_list_append(workers, cl);
+ 
+ 	if (debug) printf("Added worker client %d\n", cl->id);
+ 
+@@ -222,7 +222,7 @@ epsilond_cb_client_del(void *data, int t
+ {
+ 	Ecore_Ipc_Event_Client_Del *e;
+ 	Epsilon_Client *cl;
+-	Ecore_List *clients = data;
++	Eina_List *clients = data, *le;
+ 
+ 	e = event;
+ 	type = 0;
+@@ -234,10 +234,11 @@ epsilond_cb_client_del(void *data, int t
+ 	/*
+ 	 * Search for the disconnecting client
+ 	 */
+-	ecore_list_first_goto(clients);
+-	while ((cl = ecore_list_current(clients))) {
++	le = clients;
++	while (le) {
++		cl = le->data;
+ 		if (cl->client == e->client) {
+-			ecore_list_remove(clients);
++			clients = eina_list_remove_list(clients, le);
+ 
+ 			/*
+ 			 *  Free thumbnail data associated with this client.
+@@ -247,7 +248,7 @@ epsilond_cb_client_del(void *data, int t
+ 
+ 			break;
+ 		}
+-		ecore_list_next(clients);
++		le = eina_list_next(le);
+ 	}
+ 
+ 	ecore_ipc_client_del(e->client);
+@@ -260,7 +261,7 @@ epsilond_cb_worker_del(void *data, int t
+ {
+ 	Ecore_Ipc_Event_Client_Del *e;
+ 	Epsilon_Client *cl;
+-	Ecore_List *workers = data;
++	Eina_List *workers = data, *le;
+ 
+ 	e = event;
+ 	type = 0;
+@@ -272,10 +273,11 @@ epsilond_cb_worker_del(void *data, int t
+ 	/*
+ 	 * Search for the disconnecting client
+ 	 */
+-	ecore_list_first_goto(workers);
+-	while ((cl = ecore_list_current(workers))) {
++	le = workers;
++	while (le) {
++		cl = le->data;
+ 		if (cl->client == e->client) {
+-			ecore_list_remove(workers);
++			workers = eina_list_remove_list(workers, le);
+ 
+ 			/*
+ 			 *  Free thumbnail data associated with this client.
+@@ -285,7 +287,7 @@ epsilond_cb_worker_del(void *data, int t
+ 
+ 			break;
+ 		}
+-		ecore_list_next(workers);
++		le = eina_list_next(le);
+ 	}
+ 
+ 	ecore_ipc_client_del(e->client);
+@@ -306,10 +308,8 @@ epsilon_client_thumb_add(Epsilon_Client
+ 		thumb->path = strdup(path);
+ 		thumb->size = strlen(path) + 1;
+ 
+-		if (!cl->thumbs)
+-			cl->thumbs = ecore_list_new();
+ 		if (debug) printf("Queueing %s\n", thumb->path);
+-		ecore_list_append(cl->thumbs, thumb);
++		cl->thumbs = eina_list_append(cl->thumbs, thumb);
+ 	}
+ 
+ 	return 1;
+@@ -321,7 +321,7 @@ epsilond_cb_client_data(void *data, int
+ {
+ 	Ecore_Ipc_Event_Client_Data *e;
+ 	Epsilon_Client *cl;
+-	Ecore_List *clients = data;
++	Eina_List *clients = data, *le;
+ 
+ 	e = event;
+ 	type = 0;
+@@ -335,8 +335,9 @@ epsilond_cb_client_data(void *data, int
+ 	/*
+ 	 * Match the client sending the data.
+ 	 */
+-	ecore_list_first_goto(clients);
+-	while ((cl = ecore_list_next(clients))) {
++	le = clients;
++	while (le) {
++		cl = le->data;
+ 		if (cl->client == e->client)
+ 			break;
+ 	}
+@@ -354,10 +355,8 @@ epsilond_cb_client_data(void *data, int
+ 		memcpy(msg2,msg,sizeof(Epsilon_Message)+msg->bufsize);
+ 		
+ 		if (debug) printf("** Received %d : %s **\n",msg->mid,  ((char *)msg + sizeof(Epsilon_Message)));
+-		if (!cl->thumbs)
+-			cl->thumbs = ecore_list_new();
+ 		msg2->nid = cl->id;
+-		ecore_list_append(cl->thumbs, msg2);
++		cl->thumbs = eina_list_append(cl->thumbs, msg2);
+ 	}
+ 	else {
+ 		if (debug) printf("ERROR: No matching client for data\n");
+@@ -371,7 +370,7 @@ epsilond_cb_worker_data(void *data, int
+ {
+ 	Ecore_Ipc_Event_Client_Data *e;
+ 	Epsilon_Client *cl;
+-	Ecore_List *workers;
++	Eina_List *workers, *le;
+ 
+ 	e = event;
+ 	workers = data;
+@@ -384,8 +383,9 @@ epsilond_cb_worker_data(void *data, int
+ 	/*
+ 	 * Match the client data.
+ 	 */
+-	ecore_list_first_goto(workers);
+-	while ((cl = ecore_list_next(workers))) {
++	le = workers;
++	while (le = eina_list_next(le)) {
++		cl = le->data;
+ 		if (cl->client == e->client)
+ 			break;
+ 	}
+@@ -406,7 +406,7 @@ epsilond_cb_worker_data(void *data, int
+ 			response->client = cl;
+ 			response->msg = calloc(1,sizeof(Epsilon_Message)+msg->bufsize);
+ 			memcpy(response->msg, msg, sizeof(Epsilon_Message)+msg->bufsize);
+-			ecore_list_append(response_queue, response);
++			response_queue = eina_list_append(response_queue, response);
+ 		}
+ 	}
+ 	else {
+@@ -425,33 +425,35 @@ epsilond_client_dispatch(Epsilon_Client
+ 	/*
+ 	 * Iterate over the thumbnails splitting them between threads.
+ 	 */
+-	while (ecore_list_count(cl->thumbs) > 0) {
+-		available = ecore_list_count(queued_workers);
+-
+-		while ((worker = ecore_list_current(queued_workers))) {
++	while (eina_list_count(cl->thumbs) > 0) {
++		available = eina_list_count(queued_workers);
+ 
++		Eina_List *le = queued_workers;
++		while (le) {
++			worker = le->data;
+ 			/*
+ 			 * Don't dispatch work to active workers.
+ 			 */
+-			if (!worker->child && !ecore_list_count(worker->thumbs)) {
++			if (!worker->child && !eina_list_count(worker->thumbs)) {
+ 				Epsilon_Message *msg;
+ 
+ 				/*
+ 				 * Get the next message on the queue and break
+ 				 * out of the inner loop if NULL.
+ 				 */
+-				msg = ecore_list_first_remove(cl->thumbs);
++				msg = cl->thumbs->data;
++				cl->thumbs = eina_list_remove_list(cl->thumbs, cl->thumbs);
+ 				if (!msg)
+ 					break;
+ 
+ 				if (debug) printf("Dispatching message %d\n", msg->mid);
+-				ecore_list_append(worker->thumbs, msg);
++				worker->thumbs = eina_list_append(worker->thumbs, msg);
+ 
+ 				if (debug) printf("Assigning %s to worker %p\n", 
+ 						((char *)msg + sizeof(Epsilon_Message)), worker);
+ 				if (debug) printf("Dispatched message %d\n", msg->mid);
+ 
+-				ecore_list_next(queued_workers);
++				le = eina_list_next(le);
+ 			}
+ 			else {
+ 				available--;
+@@ -465,7 +467,7 @@ epsilond_client_dispatch(Epsilon_Client
+ 		 * Only start over in the list if we reached the end.
+ 		 */
+ 		if (!worker)
+-			ecore_list_first_goto(queued_workers);
++			le = queued_workers;
+ 
+ 		if (!available)
+ 			break;
+@@ -478,18 +480,22 @@ static int
+ epsilond_worker_run(void *data)
+ {
+ 	Epsilon_Worker *worker;
+-	Epsilon_Message *msg;
++	Epsilon_Message *msg = NULL;
+ 
+ 	worker = data;
+ 	if (debug) printf("Running worker thread %p for %d thumbnails\n", worker,
+-			ecore_list_count(worker->thumbs));
++			eina_list_count(worker->thumbs));
+ 
+ 	/* FIXME: Do we want the fast exit point here?
+-	if (!ecore_list_count(worker->thumbs))
++	if (!eina_list_count(worker->thumbs))
+ 		exit(0);
+ 		*/
+ 
+-	while ((msg = ecore_list_first_remove(worker->thumbs))) {
++	if(worker->thumbs != NULL) {
++		msg = worker->thumbs->data;
++		worker->thumbs = eina_list_remove_list(worker->thumbs, worker->thumbs);
++	}
++	while (msg) {
+ 		int status = 0;
+ 		char *path;
+ 		Epsilon *ep;
+@@ -538,6 +544,11 @@ epsilond_worker_run(void *data)
+ 		ecore_ipc_server_flush(worker->server);
+ 
+ 		free(msg);
++		if(worker->thumbs != NULL) {
++			msg = worker->thumbs->data;
++			worker->thumbs = eina_list_remove_list(worker->thumbs, worker->thumbs);
++		} else
++			msg = NULL;
+ 	}
+ 	ecore_ipc_server_flush(worker->server);
+ 	ecore_main_loop_quit();
+@@ -553,7 +564,6 @@ epsilond_worker_fork(Epsilon_Worker *wor
+ 	/*
+ 	 * Begin iteration of the thumb list.
+ 	 */
+-	ecore_list_first_goto(worker->thumbs);
+ 
+ 	worker->runtime = ecore_time_get();
+ 	worker->child = fork();
+@@ -611,9 +621,9 @@ epsilond_idle_enterer(void *data)
+ {
+ 	int idle=0;
+ 	Epsilon_Client *cl;
+-	Epsilon_Response *response;
++	Epsilon_Response *response = NULL;
+ 	Epsilon_Worker *worker;
+-	Ecore_List *clients = data;
++	Eina_List *clients = data, *cle, *wle;
+ 
+ 	if (debug) printf("Idle state entered\n");
+ 
+@@ -621,12 +631,16 @@ epsilond_idle_enterer(void *data)
+ 	 * Send responses for completed thumbnails
+ 	 */
+ 	if (debug) printf("Preparing %d responses\n",
+-			ecore_list_count(response_queue));
+-	while ((response = ecore_list_first_remove(response_queue))) {
++			eina_list_count(response_queue));
++	if(response_queue != NULL) {
++		response = response_queue->data;
++		response_queue = eina_list_remove_list(response_queue, response_queue);
++	}
++	while (response) {
+ 		Epsilon_Message *msg = response->msg;
+ 
+-		ecore_list_first_goto(clients);
+-		while ((cl = ecore_list_next(clients))) {
++		cle = clients;
++		while (cle = eina_list_next(cle)) {
+ 			if (cl->id == msg->nid)
+ 				break;
+ 		}
+@@ -643,14 +657,20 @@ epsilond_idle_enterer(void *data)
+ 			if (debug) printf("Client: %p, Msg: %p\n",cl,msg);
+ 		}
+ 		free(response);
++		if(response_queue != NULL) {
++			response = response_queue->data;
++			response_queue = eina_list_remove_list(response_queue, response_queue);
++		} else
++			response = NULL;
+ 	}
+ 	if (debug) printf("Finished responses\n");
+ 
+ 	/*
+ 	 * Collect completed worker threads.
+ 	 */
+-	ecore_list_first_goto(queued_workers);
+-	while ((worker = ecore_list_next(queued_workers))) {
++	wle = queued_workers;
++	while (wle = eina_list_next(wle)) {
++		worker = wle->data;
+ 		int status = 0;
+ 
+ 		if (worker->child) {
+@@ -675,7 +695,7 @@ epsilond_idle_enterer(void *data)
+ 
+ 			if (debug) printf("Worker %d runtime: %f\n", worker->child, ecore_time_get() - worker->runtime);
+ 		} else {
+-			if (debug) printf("Worker child pid not set, thumbs is: %d\n", ecore_list_count(worker->thumbs));
++			if (debug) printf("Worker child pid not set, thumbs is: %d\n", eina_list_count(worker->thumbs));
+ 		}
+ 	}
+ 
+@@ -684,11 +704,12 @@ epsilond_idle_enterer(void *data)
+ 	 * hope of spreading the workload evenly and avoid stalling any one
+ 	 * particular client longer than others.
+ 	 */
+-	ecore_list_first_goto(clients);
+-	while ((cl = ecore_list_next(clients))) {
+-		int available = ecore_list_count(queued_workers);
++	cle = clients;
++	while (cle = eina_list_next(cle)) {
++		cl = cle->data;
++		int available = eina_list_count(queued_workers);
+ 
+-		if (cl->thumbs && ecore_list_count(cl->thumbs)) {
++		if (cl->thumbs && eina_list_count(cl->thumbs)) {
+ 			available = epsilond_client_dispatch(cl);
+ 		}
+ 
+@@ -702,17 +723,18 @@ epsilond_idle_enterer(void *data)
+ 
+ 	}
+ 
+-	idle = ecore_list_count(queued_workers);
++	idle = eina_list_count(queued_workers);
+ 
+ 	if (debug) printf("Idle: %d\n", idle);
+ 
+ 	/*
+ 	 * Fork off worker threads to begin thumbnailing.
+ 	 */
+-	ecore_list_first_goto(queued_workers);
+-	while ((worker = ecore_list_next(queued_workers))) {
++	wle = queued_workers;
++	while (wle = eina_list_next(wle)) {
++		worker = wle->data;
+ 		if (!worker->child) {
+-			if (ecore_list_count(worker->thumbs)) {
++			if (eina_list_count(worker->thumbs)) {
+ 				idle--;
+ 
+ 				running_workers++;
+@@ -733,7 +755,7 @@ epsilond_idle_enterer(void *data)
+ 	/*
+ 	 * FIXME: Detect idle time and exit after a specified interval
+ 	 */
+-	if (idle == ecore_list_count(queued_workers)) {
++	if (idle == eina_list_count(queued_workers)) {
+ 		double now = ecore_time_get();
+ 	       	if (!idle_time)
+ 			idle_time = now;
+@@ -751,17 +773,17 @@ epsilond_init()
+ {
+ 	int wi;
+ 	char *buf;
+-	Ecore_List *clients = NULL;
++	Eina_List *clients = NULL;
+ 
+ 	epsilon_init();
+ 
+ 	/*
+ 	 * Create the accounting data for the clients and thumbnail queue.
+ 	 */
+-	clients = ecore_list_new();
+-	gworkers = ecore_list_new();
+-	response_queue = ecore_list_new();
+-	queued_workers = ecore_list_new();
++	clients = NULL;
++	gworkers = NULL;
++	response_queue = NULL;
++	queued_workers = NULL;
+ 
+ 	/*
+ 	 * Retrieve the safe socket name for the clients.
+@@ -794,8 +816,8 @@ epsilond_init()
+ 		Epsilon_Worker *worker;
+ 
+ 		worker = calloc(1, sizeof(Epsilon_Worker));
+-		worker->thumbs = ecore_list_new();
+-		ecore_list_append(queued_workers, worker);
++		worker->thumbs = NULL;
++		queued_workers = eina_list_append(queued_workers, worker);
+ 	}
+ 
+ 	ecore_idle_enterer_add(epsilond_idle_enterer, clients);
+@@ -838,10 +860,8 @@ epsilond_client_clean(Epsilon_Client *cl
+ 	if (cl->thumbs) {
+ 		Epsilon_Message *msg;
+ 
+-		while ((msg = ecore_list_first_remove(cl->thumbs))) {
++		EINA_LIST_FREE(cl->thumbs, msg)
+ 			free(msg);
+-		}
+-		ecore_list_destroy(cl->thumbs);
+ 		cl->thumbs = NULL;
+ 	}
+ 
+@@ -853,7 +873,7 @@ epsilond_worker_clean(Epsilon_Worker *wo
+ {
+ 	Epsilon_Message *msg;
+ 	worker->child = 0;
+-	while ((msg = ecore_list_first_remove(worker->thumbs))) 
++	EINA_LIST_FREE(worker->thumbs, msg)
+ 		free(msg);
+ 	return 1;
+ }
+--- epsilon-0.3.0.013-20080813/src/bin/epsilon_thumb_test.c.orig	2007-11-02 09:03:45.000000000 +0100
++++ epsilon-0.3.0.013-20080813/src/bin/epsilon_thumb_test.c	2012-01-22 14:07:09.703678869 +0100
+@@ -1,6 +1,6 @@
+ #include <Ecore.h>
+-#include <Ecore_Data.h>
+ #include <Ecore_File.h>
++#include <Eina.h>
+ #include "Epsilon_Request.h"
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -34,7 +34,7 @@ int thumb_complete_cb(void *data, int ty
+ int main(int argc, char** argv)
+ {
+ 	char *file;
+-	Ecore_List *files;
++	Eina_List *files, *le;
+ 	double start, end;
+ 
+ 	if (argc < 2) {
+@@ -55,8 +55,9 @@ int main(int argc, char** argv)
+ 
+ 	start = ecore_time_get();
+ 
+-	ecore_list_first_goto(files);
+-	while ((file = ecore_list_next(files))) {
++	le = files;
++	while (le = eina_list_next(le)) {
++		file = le->data;
+ 		char *realpath;
+ 		char fullpath[PATH_MAX];
+ 
+@@ -68,7 +69,7 @@ int main(int argc, char** argv)
+ 		}
+ 		free(realpath);
+ 	}
+-	ecore_list_destroy(files);
++	files = eina_list_free(files);
+ 
+ 	ecore_main_loop_begin();
+ 
+--- epsilon-0.3.0.013-20080813/src/lib/epsilon_thumb.c.orig	2008-05-10 06:56:12.000000000 +0200
++++ epsilon-0.3.0.013-20080813/src/lib/epsilon_thumb.c	2012-01-22 13:35:47.680282519 +0100
+@@ -3,9 +3,9 @@
+ #endif
+ 
+ #include <Ecore.h>
+-#include <Ecore_Data.h>
+ #include <Ecore_Ipc.h>
+ #include <Ecore_File.h>
++#include <Eina.h>
+ 
+ #include "Epsilon_Request.h"
+ #include "epsilon_private.h"
+@@ -20,7 +20,7 @@ static int debug = 0;
+ static int epsilon_init_count = 0;
+ static unsigned long epsilon_mid = 0;
+ 
+-static Ecore_DList *epsilon_request_queue = NULL;
++static Eina_List *epsilon_request_queue = NULL;
+ 
+ static Ecore_Ipc_Server *epsilon_server = NULL;
+ 
+@@ -51,7 +51,7 @@ epsilon_request_init(void)
+ 	 * Allocate a list for queueing requests.
+ 	 */
+ 	if (!epsilon_init_count) {
+-		epsilon_request_queue = ecore_dlist_new();
++		epsilon_request_queue = NULL;
+ 		if (!epsilon_request_queue) goto queue_error;
+ 
+ 		/*
+@@ -91,7 +91,7 @@ handler_data_error:
+ handler_del_error:
+ 	ecore_event_handler_del(epsilon_server_add);
+ handler_add_error:
+-	ecore_dlist_destroy(epsilon_request_queue);
++	epsilon_request_queue = eina_list_free(epsilon_request_queue);
+ queue_error:
+ 	ecore_ipc_shutdown();
+ con_init_error:
+@@ -110,7 +110,7 @@ epsilon_request_shutdown(void)
+ 		ecore_event_handler_del(epsilon_server_data);
+ 		ecore_event_handler_del(epsilon_server_del);
+ 		ecore_event_handler_del(epsilon_server_add);
+-		ecore_dlist_destroy(epsilon_request_queue);
++		epsilon_request_queue = eina_list_free(epsilon_request_queue);
+ 	}
+ 
+ 	ecore_ipc_shutdown();
+@@ -230,15 +230,16 @@ epsilon_cb_server_data(void *data, int t
+ 	 * Find the thumbnail request matching this message response.
+ 	 */
+ 
+-	ecore_dlist_first_goto(epsilon_request_queue);
+-	while ((thumb = ecore_dlist_current(epsilon_request_queue))) {
++	Eina_List *rl = epsilon_request_queue;
++	while (rl) {
++		thumb = rl->data;
+ 		if (thumb->id == msg->mid) {
+ 			if (debug) printf("Removing %d from queue\n", thumb->id);
+ 			thumb->status = msg->status;
+-			ecore_dlist_remove(epsilon_request_queue);
++			epsilon_request_queue = eina_list_remove_list(epsilon_request_queue, rl);
+ 			break;
+ 		}
+-		ecore_dlist_next(epsilon_request_queue);
++		rl = eina_list_next(rl);
+ 		if (debug) printf("Cycling %d times looking for %d, current is %d\n", i++, msg->mid, thumb->id);
+ 	}
+ 
+@@ -345,7 +346,7 @@ epsilon_request_add(const char *path, Ep
+ 			if (debug) printf("!! requesting thumbnail for %s (request %d)!!, %d\n", path, msg->mid, sizeof(Epsilon_Message)+msg->bufsize);
+ 			if (ecore_ipc_server_send(epsilon_server, 1,1,1,1,1,msg,sizeof(Epsilon_Message)+msg->bufsize)) {
+ 				thumb->id = msg->mid;
+-				ecore_dlist_append(epsilon_request_queue, thumb);
++				epsilon_request_queue = eina_list_append(epsilon_request_queue, thumb);
+ 			}
+ 			free(msg);
+ 		} else {
+@@ -376,13 +377,14 @@ epsilon_request_del(Epsilon_Request *thu
+ 		 * remove it, at this point we don't bother cancelling the outstanding
+ 		 * request to the daemon.
+ 		 */
+-		ecore_dlist_first_goto(epsilon_request_queue);
+-		while ((temp = ecore_dlist_current(epsilon_request_queue))) {
++		Eina_List *rl = epsilon_request_queue;
++		while (rl) {
++			temp = rl->data;
+ 			if (temp->id == thumb->id) {
+-				ecore_dlist_remove(epsilon_request_queue);
++				epsilon_request_queue = eina_list_remove_list(epsilon_request_queue, rl);
+ 				break;
+ 			}
+-			ecore_dlist_next(epsilon_request_queue);
++			rl = eina_list_next(rl);
+ 		}
+ 	}
+ 
+--- epsilon-0.3.0.013-20080813/src/lib/Epsilon_Plugin.h.orig	2008-05-22 05:36:25.000000000 +0200
++++ epsilon-0.3.0.013-20080813/src/lib/Epsilon_Plugin.h	2012-01-22 12:06:12.980102554 +0100
+@@ -1,7 +1,7 @@
+ #ifndef _EPSILON_PLUGIN_H_
+ #define _EPSILON_PLUGIN_H_
+ 
+-#include "Ecore_Data.h"
++#include <Eina.h>
+ 
+ typedef struct _Epsilon_Image Epsilon_Image;
+ typedef struct _Epsilon_Plugin Epsilon_Plugin;
+@@ -15,7 +15,7 @@ struct _Epsilon_Image
+ 
+ struct _Epsilon_Plugin
+ {
+-  Ecore_List* mime_types;
++  Eina_List* mime_types;
+   Epsilon_Image *(*epsilon_generate_thumb)(Epsilon*);
+ };
+ 
+--- epsilon-0.3.0.013-20080813/src/lib/Epsilon.c.orig	2008-07-26 14:16:41.000000000 +0200
++++ epsilon-0.3.0.013-20080813/src/lib/Epsilon.c	2012-01-22 13:07:05.106891508 +0100
+@@ -30,6 +30,7 @@
+ #include "exiftags/exif.h"
+ 
+ #include <Ecore.h>
++#include <Eina.h>
+ 
+ #include <Evas.h>
+ #include <Ecore_Evas.h>
+@@ -47,7 +48,7 @@ static unsigned LEN_DIR_CUSTOM = 0;
+ static unsigned LEN_DIR_FAIL = 0;
+ 
+ 
+-static Ecore_Hash* plugins_mime;
++static Eina_Hash* plugins_mime;
+ 
+ extern int epsilon_info_exif_props_as_int_get (Epsilon_Info * ei, unsigned
+ 					       short lvl, long prop);
+@@ -137,7 +138,7 @@ epsilon_init (void)
+   int base_len;
+   char *home;
+   struct dirent *de;
+-  char* type;
++  Eina_List *tl;
+   DIR *dir;
+   Epsilon_Plugin *plugin;
+   char plugin_path[PATH_MAX];
+@@ -166,7 +167,7 @@ epsilon_init (void)
+   ecore_file_mkpath(PATH_DIR_NORMAL);
+   ecore_file_mkpath(PATH_DIR_FAIL);
+ 
+-  plugins_mime = ecore_hash_new(ecore_str_hash, ecore_str_compare);
++  plugins_mime = eina_hash_string_superfast_new(NULL);
+ 
+   /*Initialise plugins*/
+   dir = opendir(PACKAGE_LIB_DIR "/epsilon/plugins/");
+@@ -178,9 +179,9 @@ epsilon_init (void)
+ 
+ 			   if ((plugin = epsilon_plugin_load(plugin_path))) {
+ 				   /*Append the mime types for this plugin*/
+-				   ecore_list_first_goto(plugin->mime_types);
+-				   while ( (type = ecore_list_next(plugin->mime_types))) {
+-					ecore_hash_set(plugins_mime, type, plugin);
++				   tl = plugin->mime_types;
++				   while ( (tl = eina_list_next(tl))) {
++					eina_hash_set(plugins_mime, tl->data, plugin);
+ 				   }
+ 			   }
+ 
+@@ -593,7 +594,7 @@ epsilon_generate (Epsilon * e)
+    if (ext)
+      {
+ 	mime = epsilon_mime_for_extension_get(ext + 1);
+-	if ((plugin = ecore_hash_get(plugins_mime, mime)))
++	if ((plugin = eina_hash_find(plugins_mime, mime)))
+ 	  img_thm = (plugin->epsilon_generate_thumb)(e);
+      }
+    
+@@ -836,7 +837,7 @@ _epsilon_png_write (const char *file, un
+ 	  png_destroy_write_struct (&png_ptr, (png_infopp) NULL);
+ 	  ret = 1;
+ 	}
+-      if (setjmp (png_ptr->jmpbuf))
++      if (setjmp (png_jmpbuf(png_ptr)))
+ 	{
+ 	  png_destroy_write_struct (&png_ptr, &info_ptr);
+ 	  ret = 1;
