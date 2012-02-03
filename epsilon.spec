@@ -1,3 +1,4 @@
+# NOTE: this library is obsolete, don't on ftp
 #
 # Conditional build:
 %bcond_without	static_libs	# don't build static library
@@ -13,7 +14,7 @@ Summary:	Enlightened Thumbnail Generator
 Summary(pl.UTF-8):	Oświecony generator miniaturek obrazów
 Name:		epsilon
 Version:	0.3.0.013
-Release:	0.%{_snap}.1
+Release:	0.%{_snap}.1.1
 License:	BSD
 Group:		X11/Libraries
 Source0:	%{name}-%{version}-%{_snap}.tar.bz2
